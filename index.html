@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Rutina">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Mi Rutina · Progreso diario</title>
+<style>
+:root{
+  --bg:#f4f6f8;--card:#fff;--text:#172033;--muted:#6b7280;--line:#e5e7eb;
+  --accent:#111827;--good:#16a34a;--soft:#eef2f7;
+}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:720px;margin:auto;padding:18px 14px 90px}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin:5px 2px 18px}
+h1{font-size:27px;margin:0}.date{color:var(--muted);font-size:14px;margin-top:4px}
+.card{background:var(--card);border-radius:20px;padding:18px;margin:12px 0;box-shadow:0 4px 18px rgba(0,0,0,.055)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.big{font-size:32px;font-weight:800}.muted{color:var(--muted)}
+.progress{height:14px;background:var(--soft);border-radius:999px;overflow:hidden;margin:14px 0 6px}
+.progress>div{height:100%;width:0;background:var(--accent);border-radius:999px;transition:.3s}
+.levelbar{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;margin-top:8px}.levelbar div{height:100%;background:var(--good)}
+.habit{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.habit:last-child{border:0}.check{width:42px;height:42px;border:2px solid #cbd5e1;border-radius:13px;background:white;font-size:22px;cursor:pointer}
+.check.done{background:var(--good);border-color:var(--good);color:white}
+.hname{font-weight:700;flex:1}.xp{font-size:13px;color:var(--muted)}
+.add{display:flex;gap:8px;margin-top:12px}.add input{flex:1;padding:13px;border:1px solid var(--line);border-radius:12px;font-size:16px}
+button.primary{border:0;background:var(--accent);color:white;padding:12px 16px;border-radius:12px;font-weight:700}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:13px}
+.day{text-align:center;font-size:12px;color:var(--muted)}.dot{height:9px;border-radius:9px;background:#dfe3e8;margin-top:7px}.dot.on{background:var(--good)}
+.delete{border:0;background:none;color:#9ca3af;font-size:18px;padding:6px;cursor:pointer}
+.footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:18px}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--text:#f0f3f6;--muted:#8b949e;--line:#30363d;--soft:#252b33;--accent:#f0f3f6}.progress>div{background:#4ade80}.check{background:#161b22}.primary{background:#f0f3f6!important;color:#111!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><h1>Mi rutina</h1><div class="date" id="date"></div></div><div>🔥 <b id="streak">0</b></div></header>
+
+<section class="card">
+ <div class="row"><div><div class="muted">Progreso de hoy</div><div class="big"><span id="pct">0</span>%</div></div><div><b id="count">0 / 0</b><div class="muted">objetivos</div></div></div>
+ <div class="progress"><div id="pbar"></div></div>
+</section>
+
+<section class="card">
+ <div class="row"><div><b>Nivel <span id="level">1</span></b><div class="muted"><span id="totalxp">0</span> XP acumulados</div></div><b id="nextxp"></b></div>
+ <div class="levelbar"><div id="lbar"></div></div>
+</section>
+
+<section class="card">
+ <div class="row"><b>Objetivos de hoy</b><span class="muted">+10 XP cada uno</span></div>
+ <div id="habits"></div>
+ <div class="add"><input id="newHabit" placeholder="Añadir objetivo…" maxlength="50"><button class="primary" id="addBtn">Añadir</button></div>
+</section>
+
+
+<section class="card">
+ <div class="row"><div><b>🌙 Sueño</b><div class="muted" id="sleepStatus">Listo para registrar</div></div><div class="big" id="lastSleep">--</div></div>
+ <div style="display:flex;gap:8px;margin-top:14px">
+   <button class="primary" id="sleepBtn" style="flex:1">Me voy a dormir</button>
+ </div>
+ <div id="sleepInfo" class="muted" style="margin-top:12px;font-size:14px"></div>
+ <div style="margin-top:16px"><b>Últimos registros</b><div id="sleepHistory" style="margin-top:8px"></div></div>
+</section>
+
+
+<section class="card">
+ <div class="row"><div><b>🧭 Detector de ritmo</b><div class="muted">Analiza automáticamente tus registros</div></div><div class="big" id="rhythmIcon">•</div></div>
+ <div id="rhythmText" style="margin-top:12px;line-height:1.45">Todavía necesito algunos registros para detectar tu ritmo.</div>
+ <div class="muted" id="rhythmDetail" style="margin-top:8px;font-size:13px"></div>
+</section>
+
+<section class="card">
+ <b>Últimos 7 días</b>
+ <div class="week" id="week"></div>
+</section>
+<div class="footer">App local · funciona sin conexión una vez instalada.<br><span id="installHint"></span></div>
+</div>
+
+<script>
+const KEY='rutina_local_v2';
+const today=()=>new Date().toLocaleDateString('en-CA');
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||{
+ habits:['Entrenar · 30 minutos','Leer · 30 minutos','Meditar · 10 minutos','Gestionar cosas de casa'],
+ days:{}, xp:0
+};
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function dayData(k=today()){if(!data.days[k])data.days[k]={done:[]};return data.days[k]}
+function render(){
+ const now=new Date();
+ document.getElementById('date').textContent=now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+ const d=dayData(), box=document.getElementById('habits'); box.innerHTML='';
+ data.habits.forEach((h,i)=>{
+   const done=d.done.includes(i), el=document.createElement('div');el.className='habit';
+   el.innerHTML=`<button class="check ${done?'done':''}" data-i="${i}">${done?'✓':''}</button><div class="hname">${esc(h)}</div><div class="xp">10 XP</div><button class="delete" data-del="${i}">×</button>`;
+   box.appendChild(el);
+ });
+ const n=data.habits.length, done=d.done.filter(i=>i<n).length, pct=n?Math.round(done/n*100):0;
+ pctEl('pct',pct); document.getElementById('count').textContent=`${done} / ${n}`;document.getElementById('pbar').style.width=pct+'%';
+ const level=Math.floor(data.xp/100)+1, within=data.xp%100;
+ pctEl('level',level);pctEl('totalxp',data.xp);document.getElementById('nextxp').textContent=`${within}/100`;document.getElementById('lbar').style.width=within+'%';
+ document.getElementById('streak').textContent=streak();
+ renderWeek();
+ save();
+}
+function pctEl(id,v){document.getElementById(id).textContent=v}
+function toggle(i){
+ const d=dayData(), p=d.done.indexOf(i);
+ if(p>=0){d.done.splice(p,1);data.xp=Math.max(0,data.xp-10)}else{d.done.push(i);data.xp+=10}
+ render();
+}
+function add(){
+ const inp=document.getElementById('newHabit'),v=inp.value.trim();if(!v)return;
+ data.habits.push(v);inp.value='';render();
+}
+function del(i){
+ if(!confirm('¿Eliminar este objetivo?'))return;
+ data.habits.splice(i,1);
+ Object.values(data.days).forEach(d=>d.done=d.done.filter(x=>x!==i).map(x=>x>i?x-1:x));
+ render();
+}
+function streak(){
+ let s=0,d=new Date();
+ for(let x=0;x<365;x++){let k=d.toLocaleDateString('en-CA'),dd=data.days[k];
+   if(dd&&data.habits.length&&dd.done.length>=data.habits.length)s++; else if(k!==today())break;
+   d.setDate(d.getDate()-1);
+ } return s;
+}
+function renderWeek(){
+ const w=document.getElementById('week');w.innerHTML='';
+ for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let k=d.toLocaleDateString('en-CA'),dd=data.days[k];
+ let pc=dd&&data.habits.length?Math.round(dd.done.length/data.habits.length*100):0;
+ let el=document.createElement('div');el.className='day';el.innerHTML=`${d.toLocaleDateString('es-ES',{weekday:'short'}).slice(0,2)}<div class="dot ${pc>=70?'on':''}"></div><small>${pc}%</small>`;w.appendChild(el)}
+}
+
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}
+function duration(ms){
+ let mins=Math.round(ms/60000), h=Math.floor(mins/60), m=mins%60;
+ return `${h} h ${m} min`;
+}
+function renderSleep(){
+ if(!data.sleep)data.sleep={active:null,records:[]};
+ const b=document.getElementById('sleepBtn'), st=document.getElementById('sleepStatus'), info=document.getElementById('sleepInfo');
+ if(data.sleep.active){
+   b.textContent='☀️ Me he levantado';
+   st.textContent='Durmiendo desde las '+fmtTime(data.sleep.active);
+   info.textContent='Pulsa al levantarte y calcularé automáticamente el tiempo de sueño.';
+ }else{
+   b.textContent='🌙 Me voy a dormir';
+   st.textContent='Listo para registrar';
+   info.textContent=data.sleep.records.length?'Última noche: '+duration(data.sleep.records[0].end-data.sleep.records[0].start):'Aún no hay noches registradas.';
+ }
+ const last=data.sleep.records[0];
+ document.getElementById('lastSleep').textContent=last?duration(last.end-last.start):'--';
+ const hist=document.getElementById('sleepHistory');hist.innerHTML='';
+ data.sleep.records.slice(0,7).forEach(r=>{
+   let e=document.createElement('div');e.style.cssText='padding:8px 0;border-bottom:1px solid var(--line);font-size:14px';
+   e.innerHTML=`<b>${new Date(r.start).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</b> · ${fmtTime(r.start)} → ${fmtTime(r.end)} · <b>${duration(r.end-r.start)}</b>`;
+   hist.appendChild(e);
+ });
+}
+function toggleSleep(){
+ if(!data.sleep)data.sleep={active:null,records:[]};
+ if(!data.sleep.active){
+   data.sleep.active=Date.now();
+ }else{
+   let end=Date.now(), start=data.sleep.active;
+   if(end>start)data.sleep.records.unshift({start,end});
+   data.sleep.records=data.sleep.records.slice(0,60);
+   data.sleep.active=null;
+ }
+ save();renderSleep();renderRhythm();
+}
+
+
+function renderRhythm(){
+ const keys=Object.keys(data.days).sort().slice(-7);
+ let scores=[];
+ keys.forEach(k=>{
+   let d=data.days[k], n=data.habits.length;
+   if(n) scores.push(Math.min(100,Math.round((d.done||[]).length/n*100)));
+ });
+ const sleeps=(data.sleep&&data.sleep.records?data.sleep.records:[]).slice(0,7)
+   .map(r=>(r.end-r.start)/3600000).filter(h=>h>0&&h<16);
+ const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+ const savg=sleeps.length?(sleeps.reduce((a,b)=>a+b,0)/sleeps.length):null;
+ let icon='•', text='Todavía necesito algunos registros para detectar tu ritmo.';
+ if(scores.length>=3){
+   let recent=scores.slice(-3), old=scores.slice(0,Math.max(1,scores.length-3));
+   let ra=recent.reduce((a,b)=>a+b,0)/recent.length, oa=old.reduce((a,b)=>a+b,0)/old.length;
+   if(avg>=80){icon='🔥';text='Ritmo fuerte: estás manteniendo una constancia alta.'}
+   else if(ra>oa+10){icon='📈';text='Vas en subida: tus últimos días mejoran respecto a los anteriores.'}
+   else if(ra<oa-10){icon='🔎';text='Ritmo en descenso: tus últimos días están por debajo de tu tendencia.'}
+   else {icon='⚖️';text='Ritmo estable: estás manteniendo una tendencia bastante constante.'}
+ }
+ document.getElementById('rhythmIcon').textContent=icon;
+ document.getElementById('rhythmText').textContent=text;
+ let parts=[];
+ if(avg!==null)parts.push(`Cumplimiento medio: ${avg}%`);
+ if(savg!==null)parts.push(`Sueño medio: ${savg.toFixed(1)} h`);
+ document.getElementById('rhythmDetail').textContent=parts.join(' · ');
+}
+
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+document.getElementById('habits').onclick=e=>{if(e.target.dataset.i!==undefined)toggle(+e.target.dataset.i);if(e.target.dataset.del!==undefined)del(+e.target.dataset.del)}
+document.getElementById('sleepBtn').onclick=toggleSleep;
+document.getElementById('addBtn').onclick=add;document.getElementById('newHabit').onkeydown=e=>{if(e.key==='Enter')add()}
+render();renderSleep();renderRhythm();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installHint').textContent='Puedes instalar Mi Rutina desde el menú del navegador.';
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('installHint').textContent='✓ Mi Rutina está instalada.';
+  deferredPrompt=null;
+});
+</script>
+</body></html>

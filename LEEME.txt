@@ -1,0 +1,21 @@
+MI RUTINA v2 · PWA
+
+Archivos:
+- index.html
+- manifest.webmanifest
+- sw.js
+- icon.svg
+
+PUBLICACIÓN RÁPIDA EN GITHUB PAGES
+1. Entra en github.com y crea una cuenta si no tienes.
+2. Crea un repositorio nuevo, por ejemplo: mi-rutina.
+3. Sube LOS CUATRO archivos de esta carpeta a la raíz del repositorio.
+4. Abre Settings > Pages.
+5. En Build and deployment elige: Deploy from a branch.
+6. Branch: main / (root) y pulsa Save.
+7. GitHub te mostrará una dirección https://...github.io/mi-rutina/
+8. Ábrela en Chrome Android.
+9. Menú ⋮ > Añadir a pantalla de inicio / Instalar aplicación.
+
+Después funcionará como una app y, una vez cargada, también sin conexión.
+Los datos permanecen guardados en ese navegador/dispositivo.
